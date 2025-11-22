@@ -1,0 +1,33 @@
+digraph AlsoLikes {
+    rankdir=LR;
+    splines=true;
+    nodesep=0.5;
+    ranksep=1;
+
+    subgraph cluster_readers {
+        label="Readers";
+        style=filled;
+        fillcolor=lightgray;
+        node [shape=box];
+
+        "da91" [shape=box ];
+        "2740" [shape=box ];
+    }
+
+    subgraph cluster_documents {
+        label="Documents";
+        style=filled;
+        fillcolor=lightyellow;
+        node [shape=circle];
+
+        "681c" [shape=circle ,fillcolor=lightgreen,style=filled];
+        "56a0" [shape=circle ];
+        "5fb0" [shape=circle ];
+    }
+
+    "2740" -> "681c";
+    "da91" -> "681c";
+    "2740" -> "56a0";
+    "da91" -> "56a0";
+    "da91" -> "5fb0";
+}
