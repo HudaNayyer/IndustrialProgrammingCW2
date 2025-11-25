@@ -121,7 +121,7 @@ class BrowserAnalyzer:
             return
 
         # Sort items by count descending
-        items = data_counter.most_common(10)
+        items = data_counter.most_common()
 
         labels = [item[0] for item in items]
         values = [item[1] for item in items]
