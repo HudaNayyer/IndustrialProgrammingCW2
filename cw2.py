@@ -33,25 +33,6 @@ def main(): # main function that parses arguments and calls appropriate task scr
     parser = argparse.ArgumentParser(
         description='Unified interface for Document Tracker Analysis (MH,HM,SM)',
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
-Available Tasks:
-  2a - Country views histogram
-  2b - Continent views histogram  
-  3a - Distinct user agents analysis
-  3b - Browser distribution analysis
-  4  - Top readers by reading time
-  5d - Also likes recommendations
-  6  - Graph visualization
-  7  - GUI application
-
-Examples:
-  python3 cw2.py -t 2a -f data.json -d *input a document*
-  python3 cw2.py -t 3b -f data.json
-  python3 cw2.py -t 4 -f data.json
-  python3 cw2.py -t 5d -f data.json -d *input a document* -u *input a user id*
-  python3 cw2.py -t 6 -f data.json -d *input a document*
-  python3 cw2.py -t 7
-        """
     )
     
     # Add arguments

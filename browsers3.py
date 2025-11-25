@@ -121,7 +121,7 @@ class BrowserAnalyzer:
             return
 
         # Sort items by count descending
-        items = data_counter.most_common()
+        items = data_counter.most_common(10)
 
         labels = [item[0] for item in items]
         values = [item[1] for item in items]
@@ -188,11 +188,6 @@ def main():
     parser = argparse.ArgumentParser(
         description='Analyze browser usage from event data',
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
-Examples:
-  python3 3browsers.py -f data.json -t 3a  # Full user-agent analysis
-  python3 3browsers.py -f data.json -t 3b  # Simplified browser analysis
-        """
     )
     
     # Add arguments
