@@ -2,8 +2,6 @@ import argparse, json
 from collections import defaultdict, Counter
 
 # cli:  python 5likes.py --file data\issuu_cw2.json --doc 140228202800-6ef39a241f35301a9a42cd0ed21e5fb0 --user 745409913574d4c6
-# user is optional so try w/o and try using another doc and also try w issuu_sample.json
-
 def readEvents(path):
     with open(path, "r", encoding="utf-8") as f:
         for line in f:
@@ -17,8 +15,9 @@ def readEvents(path):
 # - doc_to_readers[doc] -> set of visitor_uuids/ readers who read the doc
 # - reader_to_docs[user] -> set of doc_uuids read by the user
 # and returns both mappings
+
 def build_indices(file_path):
-    """Build mappings: doc_to_readers and reader_to_docs."""
+    #Build mappings: doc_to_readers and reader_to_docs.
     doc_to_readers = defaultdict(set)
     reader_to_docs = defaultdict(set)
 
