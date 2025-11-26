@@ -1,401 +1,290 @@
-# Import required libraries
-import tkinter as tk  # For GUI creation (as in lab)
-from tkinter import ttk  # For improved widgets
-from tkinter import filedialog  # For file selection dialog
-from tkinter import messagebox  # For popup messages
-from tkinter import scrolledtext  # For scrollable text output
-import matplotlib.pyplot as plt  
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg  # embedding plots
-import subprocess  
-import os  
-import sys  
+import customtkinter as ctk
+import tkinter.filedialog as fd
+from tkinter import messagebox
+import matplotlib.pyplot as plt
+
+# TASK MODULES
+from views2 import DocumentViewAnalyzer
+from browsers3 import BrowserAnalyzer
+from readers4 import top_readers
+from likes5 import also_like, build_indices
+from graph6 import DocumentGraphVisualizer
 
 
-class DocumentTrackerGUI: # main gui application for document trackign analysis 
-    
-    def __init__(self, window): # initialize gui window 
-       
-        # Store window reference
-        self.window = window
-        
-        # Set window properties
-        self.window.title("Document Tracker Analysis (MH,HM,SM)")  # Window title
-        self.window.geometry("800x600")  # Window size
-        
-        # Variables for user input 
-        self.file_path = tk.StringVar()  # Selected file path
-        self.doc_uuid = tk.StringVar()  # Document UUID
-        self.user_uuid = tk.StringVar()  # User UUID (optional)
-        
-        self.setup_gui()  # Create all widgets
-    
-    def setup_gui(self): # settign up gui by creating and arranging all gui elements 
-        
-        # File Selection Row 
-        # Label for file selection
-        tk.Label(self.window, text="Data File:", font=('Arial', 10)).grid(
-            row=0, column=0, padx=10, pady=10, sticky='w'
+# colour 
+COLORS = {
+    'dark_gray': '#3A3A3A',
+    'sage_green': '#6B8E6B',
+    'light_gray': '#C4C1BA',
+    'off_white': '#F5F5F0',
+    'white': '#FFFFFF',
+    'accent': '#8B9F8B'
+}
+
+ctk.set_appearance_mode("dark")     # Make the user interface to be dark
+ctk.set_default_color_theme("green") # decided on a colour scheme (green)
+
+
+class CW2GUI(ctk.CTk):
+    def __init__(self):
+        super().__init__()
+
+        self.title("CW2 Data Analytics")
+        self.state("zoomed")  # Fullscreen window
+
+        # main layout has two columns
+        self.grid_columnconfigure(0, weight=0)   # left panel fixed
+        self.grid_columnconfigure(1, weight=1)   # right panel which expands
+        self.grid_rowconfigure(0, weight=1)
+
+        # left panel
+        self.left_panel = ctk.CTkFrame(
+            self,
+            width=320,
+            fg_color=COLORS['dark_gray'],
+            corner_radius=0
         )
-        
-        # Entry field for file path
-        file_entry = tk.Entry(self.window, textvariable=self.file_path, width=40)
-        file_entry.grid(row=0, column=1, padx=5, pady=10)
-        
-        # Browse button
-        browse_btn = tk.Button(self.window, text="Browse", command=self.browse_file)
-        browse_btn.grid(row=0, column=2, padx=5, pady=10)
-        
-        # document UUID Row 
-        # Label for document UUID
-        tk.Label(self.window, text="Document UUID:", font=('Arial', 10)).grid(
-            row=1, column=0, padx=10, pady=5, sticky='w'
+        self.left_panel.grid(row=0, column=0, sticky="nsw") # Position left sidebar in top-left and stick it to north, south, and west edges
+        self.left_panel.grid_propagate(False) # keeping the set width and height fixed
+
+        title = ctk.CTkLabel(
+            self.left_panel, text="IP CW2 Group 18",
+            font=("Helvetica", 20, "bold"),
+            text_color=COLORS["off_white"]
         )
-        
-        # Entry field for document UUID
-        doc_entry = tk.Entry(self.window, textvariable=self.doc_uuid, width=40)
-        doc_entry.grid(row=1, column=1, padx=5, pady=5)
-        
-        # User UUID Row (Optional) 
-        # Label for user UUID
-        tk.Label(self.window, text="User UUID (optional):", font=('Arial', 10)).grid(
-            row=2, column=0, padx=10, pady=5, sticky='w'
+        title.pack(pady=(20, 15))
+
+        # input fields
+        # File input
+        self.file_label = ctk.CTkLabel(
+            self.left_panel, text="Data File:",
+            text_color=COLORS['white']
         )
-        
-        # entry field for user UUID
-        user_entry = tk.Entry(self.window, textvariable=self.user_uuid, width=40)
-        user_entry.grid(row=2, column=1, padx=5, pady=5)
-        
-        # Task Buttons Frame
-        # Create frame for buttons
-        button_frame = tk.Frame(self.window)
-        button_frame.grid(row=3, column=0, columnspan=3, padx=10, pady=20)
-        
-        # Task 2 buttons
-        tk.Button(button_frame, text="Task 2a: Country Views", 
-                 command=self.run_task_2a, width=20, bg='lightblue').grid(
-            row=0, column=0, padx=5, pady=5
+        self.file_label.pack(anchor="w", padx=20)
+
+        file_frame = ctk.CTkFrame(self.left_panel, fg_color="transparent")
+        file_frame.pack(fill="x", pady=5, padx=20)
+
+        self.file_entry = ctk.CTkEntry(file_frame, placeholder_text="Select JSON file")
+        self.file_entry.pack(side="left", fill="x", expand=True)
+
+        browse_btn = ctk.CTkButton(
+            file_frame, text="Browse", fg_color=COLORS['sage_green'],
+            hover_color=COLORS['accent'], command=self.browse_file
         )
-        
-        tk.Button(button_frame, text="Task 2b: Continent Views", 
-                 command=self.run_task_2b, width=20, bg='lightblue').grid(
-            row=0, column=1, padx=5, pady=5
+        browse_btn.pack(side="left", padx=(10, 0))
+
+        # document UUID
+        self.doc_label = ctk.CTkLabel(
+            self.left_panel, text="Document UUID:",
+            text_color=COLORS['white']
         )
-        
-        # Task 3 buttons
-        tk.Button(button_frame, text="Task 3a: User Agents", 
-                 command=self.run_task_3a, width=20, bg='lightgreen').grid(
-            row=1, column=0, padx=5, pady=5
+        self.doc_label.pack(anchor="w", padx=20, pady=(15, 0))
+
+        self.doc_entry = ctk.CTkEntry(self.left_panel, placeholder_text="Enter document UUID")
+        self.doc_entry.pack(fill="x", padx=20, pady=5)
+
+        # user UUID
+        self.user_label = ctk.CTkLabel(
+            self.left_panel, text="User UUID (optional):",
+            text_color=COLORS['white']
         )
-        
-        tk.Button(button_frame, text="Task 3b: Browsers", 
-                 command=self.run_task_3b, width=20, bg='lightgreen').grid(
-            row=1, column=1, padx=5, pady=5
+        self.user_label.pack(anchor="w", padx=20)
+
+        self.user_entry = ctk.CTkEntry(self.left_panel, placeholder_text="Enter user UUID")
+        self.user_entry.pack(fill="x", padx=20, pady=5)
+
+        # button panel
+        btn_title = ctk.CTkLabel(
+            self.left_panel, text="Analysis Tasks",
+            font=("Helvetica", 15, "bold"),
+            text_color=COLORS['off_white']
         )
-        
-        # Task 4 and 5 buttons
-        tk.Button(button_frame, text="Task 4: Top Readers", 
-                 command=self.run_task_4, width=20, bg='lightyellow').grid(
-            row=2, column=0, padx=5, pady=5
-        )
-        
-        tk.Button(button_frame, text="Task 5: Also Likes", 
-                 command=self.run_task_5, width=20, bg='lightyellow').grid(
-            row=2, column=1, padx=5, pady=5
-        )
-        
-        # Task 6 button
-        tk.Button(button_frame, text="Task 6: Generate Graph", 
-                 command=self.run_task_6, width=20, bg='lightcoral').grid(
-            row=3, column=0, padx=5, pady=5
-        )
-        
-        # Clear button
-        tk.Button(button_frame, text="Clear Output", 
-                 command=self.clear_output, width=20, bg='gray').grid(
-            row=3, column=1, padx=5, pady=5
-        )
-        
-        # Text box for output 
-        # Label for output
-        tk.Label(self.window, text="Output:", font=('Arial', 10, 'bold')).grid(
-            row=4, column=0, padx=10, pady=(10, 5), sticky='w'
-        )
-        
-        # Scrolled text widget for output 
-        self.output_text = scrolledtext.ScrolledText(
-            self.window, 
-            width=90, 
-            height=15,
-            wrap=tk.WORD,
-            font=('Courier', 9)  
-        )
-        self.output_text.grid(row=5, column=0, columnspan=3, padx=10, pady=5)
-        
-        # status bar for extra user experience
-        self.status_label = tk.Label(self.window, text="Ready", 
-                                    bd=1, relief=tk.SUNKEN, anchor=tk.W)
-        self.status_label.grid(row=6, column=0, columnspan=3, 
-                              sticky=tk.W+tk.E, padx=10, pady=5)
-    
-    def browse_file(self): # allowing user to open file browser to select JSON file
-        
-        # Open file dialog
-        filename = filedialog.askopenfilename(
-            title="Select JSON Data File",
-            filetypes=[("JSON files", "*.json"), ("All files", "*.*")]
-        )
-        
-        # Set the file path if selected
-        if filename:
-            self.file_path.set(filename)
-            self.update_status(f"File selected: {os.path.basename(filename)}")
-    
-    def update_status(self, message): # update status bar with a message 
-        self.status_label.config(text=message)
-        self.window.update()  # Force update
-    
-    def clear_output(self): # clearning output area
-        self.output_text.delete('1.0', tk.END)
-        self.update_status("Output cleared")
-    
-    def append_output(self, text): # adding text output area
-        self.output_text.insert(tk.END, text + "\n")
-        self.output_text.see(tk.END)  # Auto-scroll
-        self.window.update()
-    
-    def validate_inputs(self, need_doc=True): # checking if input is valid before running
-        
-        # Check if file is selected
-        if not self.file_path.get():
-            messagebox.showerror("Error", "Please select a data file")
-            return False
-        
-        # Check if file exists
-        if not os.path.exists(self.file_path.get()):
-            messagebox.showerror("Error", "File not found")
-            return False
-        
-        # Check document UUID if needed
-        if need_doc and not self.doc_uuid.get():
-            messagebox.showerror("Error", "Please enter a document UUID")
-            return False
-        
-        return True
-    
-    def run_command(self, script_name, args_list): # Run a Python script with arguments and capture output
-        
-        try:
-            # Build command
-            cmd = [sys.executable, script_name] + args_list
-            
-            # Run command and capture the output
-            result = subprocess.run(
-                cmd, 
-                capture_output=True, 
-                text=True,
-                cwd=os.path.dirname(os.path.abspath(__file__))  # Run in the script directory
+        btn_title.pack(anchor="w", padx=20, pady=(20, 10))
+
+        # Helper to generate rounded buttons
+        def add_button(label, command):
+            btn = ctk.CTkButton(
+                self.left_panel,
+                text=label,
+                fg_color=COLORS['sage_green'],
+                hover_color=COLORS['accent'],
+                corner_radius=12,
+                command=command
             )
-            
-            # Display output
-            if result.stdout:
-                self.append_output(result.stdout)
-            
-            if result.stderr:
-                self.append_output(f"Errors: {result.stderr}")
-            
-            return result.returncode == 0
-            
-        except Exception as e:
-            self.append_output(f"Error running command: {str(e)}")
-            return False
-    
-    def run_task_2a(self): # runs task 2a by calling views2.py
-    
-        # Validate inputs
-        if not self.validate_inputs():
-            return
-        
-        # Clear output and update status
-        self.clear_output()
-        self.update_status("Running Task 2a: Country Analysis...")
-        
-        # Display header
-        self.append_output("="*50)
-        self.append_output("Task 2a: Country Views Analysis")
-        self.append_output("="*50)
-        
-        # Run the command and set the file path and doc uuid to the user input 
-        success = self.run_command(
-            "views2.py",
-            ["-f", self.file_path.get(), 
-             "-d", self.doc_uuid.get(),
-             "-t", "2a"]
-        )
-        
-        # Update the status
-        if success:
-            self.update_status("Task 2a completed")
-        else:
-            self.update_status("Task 2a failed")
-    
-    def run_task_2b(self): # run task 2b (continents) by cahnging the task parameters to "2b"
-        
-        if not self.validate_inputs():
-            return
-        
-        self.clear_output()
-        self.update_status("Running Task 2b: Continent Analysis...")
-        
-        self.append_output("="*50)
-        self.append_output("Task 2b: Continent Views Analysis")
-        self.append_output("="*50)
-        success = self.run_command(
-            "views2.py",
-            ["-f", self.file_path.get(),
-             "-d", self.doc_uuid.get(),
-             "-t", "2b"]
-        )
-        
-        if success:
-            self.update_status("Task 2b completed")
-        else:
-            self.update_status("Task 2b failed")
-    
-    def run_task_3a(self): # run task 3a which is the user agent analysis
-        
-        if not self.validate_inputs(need_doc=False):
-            return
-        
-        self.clear_output()
-        self.update_status("Running Task 3a: User Agent Analysis...")
-        
-        self.append_output("="*50)
-        self.append_output("Task 3a: User Agent Analysis")
-        self.append_output("="*50)
+            btn.pack(fill="x", padx=20, pady=4)
 
-        success = self.run_command(
-            "browsers3.py",
-            ["-f", self.file_path.get(), "-t", "3a"]
+        add_button("2a – Country Views", self.run_task_2a)
+        add_button("2b – Continent Views", self.run_task_2b)
+        add_button("3a – Browser Analysis (Full UA)", self.run_task_3a)
+        add_button("3c – Browser Types", self.run_task_3b)
+        add_button("4 – Top Readers", self.run_task_4)
+        add_button("5d – Recommendations (List)", self.run_task_5)
+        add_button("6 – Recommendations Graph", self.run_task_6)
+
+        # Clear Output
+        clear_btn = ctk.CTkButton(
+            self.left_panel,
+            text="Clear Output",
+            fg_color=COLORS['light_gray'],
+            text_color="black",
+            hover_color=COLORS['accent'],
+            corner_radius=12,
+            command=self.clear_output
         )
-        
-        if success:
-            self.update_status("Task 3a completed")
-        else:
-            self.update_status("Task 3a failed")
-    
-    def run_task_3b(self): # 3b follows the same format but with changed task parameters 
-        
-        if not self.validate_inputs(need_doc=False):
-            return
-        
-        self.clear_output()
-        self.update_status("Running Task 3b: Browser Analysis...")
-        
-        self.append_output("="*50)
-        self.append_output("Task 3b: Browser Analysis")
-        self.append_output("="*50)
-        
-        # Run command
-        success = self.run_command(
-            "browsers3.py",
-            ["-f", self.file_path.get(), "-t", "3b"]
+        clear_btn.pack(fill="x", padx=20, pady=(15, 0))
+
+        # -------------------------------
+
+        # right panel : contains the output and logs of tasks aswell
+        self.right_panel = ctk.CTkFrame(self, fg_color=COLORS['off_white'])
+        self.right_panel.grid(row=0, column=1, sticky="nsew", padx=10, pady=10)
+        self.right_panel.grid_rowconfigure(1, weight=1)
+        self.right_panel.grid_columnconfigure(0, weight=1)
+
+        log_label = ctk.CTkLabel(
+            self.right_panel,
+            text="Output",
+            text_color=COLORS['dark_gray'],
+            font=("Helvetica", 15, "bold")
         )
-        
-        if success:
-            self.update_status("Task 3b completed")
-        else:
-            self.update_status("Task 3b failed")
-    
-    def run_task_4(self): # task 4 (gettign the top readers)
-        
-        if not self.validate_inputs(need_doc=False):
-            return
-        
-        self.clear_output()
-        self.update_status("Running Task 4: Top Readers...")
-        
-        self.append_output("="*50)
-        self.append_output("Task 4: Top Readers by Reading Time")
-        self.append_output("="*50)
-        
-        # Run command
-        success = self.run_command(
-            "readers4.py",
-            ["-f", self.file_path.get()]
+        log_label.grid(row=0, column=0, sticky="w", padx=10, pady=10)
+
+        self.output_box = ctk.CTkTextbox(
+            self.right_panel,
+            fg_color=COLORS['white'],
+            text_color=COLORS['dark_gray'],
+            corner_radius=8
         )
-        
-        if success:
-            self.update_status("Task 4 completed")
-        else:
-            self.update_status("Task 4 failed")
-    
-    def run_task_5(self): # task 5, the we call the also liked implementation
-        
-        if not self.validate_inputs():
+        self.output_box.grid(row=1, column=0, sticky="nsew", padx=10, pady=(0, 10))
+
+    # Logic functions for individual tasks 
+
+    def browse_file(self):
+        file_path = fd.askopenfilename(
+            title="Select Data File",
+            filetypes=[("JSON files", "*.json")]
+        )
+        if file_path:
+            self.file_entry.delete(0, "end")
+            self.file_entry.insert(0, file_path)
+
+    def clear_output(self):
+        self.output_box.delete("1.0", "end")
+
+    #  task 2a 
+    def run_task_2a(self):
+        file = self.file_entry.get()
+        doc = self.doc_entry.get()
+        if not file or not doc:
+            messagebox.showerror("Error", "Missing file or document UUID.")
             return
-        
-        self.clear_output()
-        self.update_status("Running Task 5: Also Likes...")
-        
-        self.append_output("="*50)
-        self.append_output("Task 5: Also Likes Recommendations")
-        self.append_output("="*50)
-        
-        # Build arguments
-        args = ["-f", self.file_path.get(), "-d", self.doc_uuid.get()]
-        
-        # Add user UUID if provided
-        if self.user_uuid.get():
-            args.extend(["-u", self.user_uuid.get()])
-        
-        # Run command
-        success = self.run_command("likes5.py", args)
-        
-        if success:
-            self.update_status("Task 5 completed")
-        else:
-            self.update_status("Task 5 failed")
-    
-    def run_task_6(self): # task 6 
-        
-        if not self.validate_inputs():
+
+        analyzer = DocumentViewAnalyzer(file, doc)
+        hist = analyzer.analyze_by_country()
+        analyzer.create_histogram(hist, f"Views by Country for document : {doc}", "Country")
+        self.output_box.insert("end", f"\n(2a) Country views histogram generated.\n")
+
+    #  task 2b 
+    def run_task_2b(self):
+        file = self.file_entry.get()
+        doc = self.doc_entry.get()
+        if not file or not doc:
+            messagebox.showerror("Error", "Missing file or document UUID.")
             return
-        
-        self.clear_output()
-        self.update_status("Running Task 6: Graph Generation...") # update status with message
-        
-        self.append_output("="*50)
-        self.append_output("Task 6: Graph Visualization")
-        self.append_output("="*50)
-        
-        # Build arguments
-        args = ["-f", self.file_path.get(), "-d", self.doc_uuid.get()]
-        
-        # Add user UUID if inputed by the user
-        if self.user_uuid.get():
-            args.extend(["-u", self.user_uuid.get()])
-        
-        # Run the command
-        success = self.run_command("graph6.py", args)
-        
-        if success:
-            self.update_status("Task 6 completed, check the output files in project folder")
-            # Show info message
-            messagebox.showinfo("Graph Created", 
-                              "Graph files have been created:\n" +
-                              "- also_likes.dot\n" +
-                              "- also_likes.pdf\n" +
-                              "- also_likes.png")
-        else:
-            self.update_status("Task 6 failed")
+
+        analyzer = DocumentViewAnalyzer(file, doc)
+        hist = analyzer.analyze_by_continent()
+        analyzer.create_histogram(hist, f"Views by Continent for document : {doc}", "Continent")
+        self.output_box.insert("end", f"\n(2b) Continent views histogram generated.\n")
+
+    #  task 3a 
+    def run_task_3a(self):
+        file = self.file_entry.get()
+        analyzer = BrowserAnalyzer(file)
+        data = analyzer.analyze_full_user_agents()
+        analyzer.create_histogram(data, "Full User-Agent Histogram", "User-Agent")
+        self.output_box.insert("end", "\n(3a) Full UA Browser Analysis completed.\n")
+
+    #  task 3c 
+    def run_task_3b(self):
+        file = self.file_entry.get()
+        analyzer = BrowserAnalyzer(file)
+        data = analyzer.analyze_simplified_browsers()
+        analyzer.create_histogram(data, "Browser Types Histogram", "Browser")
+        self.output_box.insert("end", "\n(3c) Browser types histogram generated.\n")
+
+    #  task 4 
+    def run_task_4(self):
+        file = self.file_entry.get()
+        data = top_readers(file)
+        self.output_box.insert("end", "\n(4) Top Readers:\n")
+        self.output_box.insert("end", "UUID                                Seconds\n")
+        self.output_box.insert("end", "----------------------------------------------\n")
+
+        for uuid, t in data:
+            self.output_box.insert(
+                "end", 
+                f"{uuid:<35} {t}\n"
+            ) #140206010823-b14c9d966be950314215c17923a04af7
+
+    #  task 5d 
+    def run_task_5(self):
+        file = self.file_entry.get()
+        doc = self.doc_entry.get()
+        user = self.user_entry.get() or None
+
+        if not file or not doc:
+            messagebox.showerror("Error", "Enter file path and document UUID.")
+            return
+
+        # Build indices exactly like we did in 5likes.py
+        doc_to_readers, reader_to_docs = build_indices(file)
+
+        # Get also liked documents 
+        results = also_like(doc_to_readers, reader_to_docs, doc, user)
+
+        self.output_box.insert("end", f"\n(5d) Top 10 'Also Liked' Documents for: {doc}:\n")
+
+        if not results:
+            self.output_box.insert("end", "no shared readers\n")
+            return
+
+        self.output_box.insert("end", "Document UUID                          Shared Readers\n")
+        self.output_box.insert("end", "-----------------------------------------------------\n")
+
+        for d, count in results[:10]:
+            self.output_box.insert("end", f"{d:<40} : {count}\n")
 
 
-def main():  # main function to run the gui
+    #  task 6 
+    def run_task_6(self):
+        file = self.file_entry.get()
+        doc = self.doc_entry.get()
+        user = self.user_entry.get() or None
 
-    window = tk.Tk() # creating the main window 
-    app = DocumentTrackerGUI(window) # create GUI application
-    window.mainloop() # start the GUI event loop
+        if not file or not doc:
+            messagebox.showerror("Error", "Enter file path and document UUID.")
+            return
 
-# Run main if executed directly
-if __name__ == '__main__':
-    main()
+        visualizer = DocumentGraphVisualizer(file)
+        visualizer.create_graph(
+            doc_uuid=doc,
+            user_uuid=user,
+            output_name="also_likes_gui"
+        )
+
+        self.output_box.insert(
+            "end",
+            f"\n(6) Recommendation graph generated for document: {doc}\n"
+            f"     User highlighted: {user if user else 'None'}\n"
+            f"     The files have been saved as: also_likes_gui.pdf/.png/.ps\n"
+        )
+
+        messagebox.showinfo("Success", "Graph saved as also_likes.png, check folder for results")
+
+
+# main to run the program
+if __name__ == "__main__":
+    app = CW2GUI()
+    app.mainloop()

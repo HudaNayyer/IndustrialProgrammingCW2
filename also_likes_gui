@@ -1,0 +1,25 @@
+// Document-Reader Relationships
+digraph {
+	rankdir=LR size="12,8"
+	graph [bgcolor=white]
+	node [fontname=Helvetica]
+	edge [fontname=Helvetica]
+	subgraph cluster_readers {
+		color=lightgray fillcolor=lightgray label=Readers style=filled
+		"2db5b0f571529c24" [label="9c24" color=darkblue fillcolor=lightblue shape=ellipse style=filled]
+	}
+	subgraph cluster_documents {
+		color=lightyellow fillcolor=lightyellow label=Documents style=filled
+		"140226031233-fa43985fcea4656b0ac404d6e91764aa" [label="64aa" color=darkgreen fillcolor=lightgreen penwidth=3 shape=box style=filled]
+		"140225031511-3ce7421d8dd315e959c7f521a792e27f" [label=e27f color=orange fillcolor=lightyellow shape=box style=filled]
+		"140226173539-c768b4852cbf6c0a74c8dcdbaf0847db" [label="47db" color=orange fillcolor=lightyellow shape=box style=filled]
+		"140228033416-6b6a629d79f13af49cc8f86e8f0a45e6" [label="45e6" color=orange fillcolor=lightyellow shape=box style=filled]
+		"131105081144-a0f4b30337b0baca1e995e064e320450" [label=0450 color=orange fillcolor=lightyellow shape=box style=filled]
+	}
+	"2db5b0f571529c24" -> "140225031511-3ce7421d8dd315e959c7f521a792e27f" [arrowsize=0.8 color=gray style=dashed]
+	"2db5b0f571529c24" -> "140226173539-c768b4852cbf6c0a74c8dcdbaf0847db" [arrowsize=0.8 color=gray style=dashed]
+	"2db5b0f571529c24" -> "140226031233-fa43985fcea4656b0ac404d6e91764aa" [arrowsize=1.2 color=darkgreen penwidth=2]
+	"2db5b0f571529c24" -> "140228033416-6b6a629d79f13af49cc8f86e8f0a45e6" [arrowsize=0.8 color=gray style=dashed]
+	"2db5b0f571529c24" -> "131105081144-a0f4b30337b0baca1e995e064e320450" [arrowsize=0.8 color=gray style=dashed]
+	fontsize=16 fontweight=bold label="\nDocument Recommendation Graph\nTarget Document: 64aa\nReaders: 1, Documents: 5\n" labelLoc=t
+}

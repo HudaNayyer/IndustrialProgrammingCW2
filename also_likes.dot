@@ -6,12 +6,12 @@ digraph {
 	edge [fontname=Helvetica]
 	subgraph cluster_readers {
 		color=lightgray fillcolor=lightgray label=Readers style=filled
-		f407a3ac7b3414a8 [label="14a8" color=darkblue fillcolor=lightblue shape=ellipse style=filled]
+		c08fc48b49f0e1be [label=e1be color=darkblue fillcolor=lightblue shape=ellipse style=filled]
 	}
 	subgraph cluster_documents {
 		color=lightyellow fillcolor=lightyellow label=Documents style=filled
-		"140214151532-ddb78ab288a07109ddd6e698d828681a" [label="681a" color=darkgreen fillcolor=lightgreen penwidth=3 shape=box style=filled]
+		"140206010823-b14c9d966be950314215c17923a04af7" [label="4af7" color=darkgreen fillcolor=lightgreen penwidth=3 shape=box style=filled]
 	}
-	f407a3ac7b3414a8 -> "140214151532-ddb78ab288a07109ddd6e698d828681a" [arrowsize=1.2 color=darkgreen penwidth=2]
-	fontsize=16 fontweight=bold label="\nDocument Recommendation Graph\nTarget Document: 681a\nReaders: 1, Documents: 1\n" labelLoc=t
+	c08fc48b49f0e1be -> "140206010823-b14c9d966be950314215c17923a04af7" [arrowsize=1.2 color=darkgreen penwidth=2]
+	fontsize=16 fontweight=bold label="\nDocument Recommendation Graph\nTarget Document: 4af7\nReaders: 1, Documents: 1\n" labelLoc=t
 }
